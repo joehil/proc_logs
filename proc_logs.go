@@ -21,8 +21,9 @@ import (
 var do_trace bool = false
 var pidfile string
 var ownlog string
-var read_log1 string
-var read_log2 string
+var logs []string
+var rlogs []*os.File
+var rpos []int64
 
 type User struct {
     id string
@@ -68,25 +69,27 @@ func main() {
 	signal.Notify(signals, syscall.SIGHUP)
 	go catch_signals(signals)
 
-// Open read_log1
-        r1, err := os.Open(read_log1)
-        if err != nil {
-                log.Fatalf("error opening read_log1: %v", err)
-        }
-        defer r1.Close()
-        n1, err := r1.Seek(0, 2)
-
-// Open read_log2
-        r2, err := os.Open(read_log2)
-        if err != nil {
-                log.Fatalf("error opening read_log2: %v", err)
-        }
-        defer r2.Close()
-        n2, err := r2.Seek(0, 2)
+// Open logs to read
+	if do_trace {
+		log.Println(logs)
+	}
+	for i, rlog := range logs {
+        	r, err := os.Open(rlog)
+        	if err != nil {
+                	log.Fatalf("error opening %s: %v", rlog, err)
+        	}
+		rlogs = append(rlogs, r)
+        	defer rlogs[i].Close()
+        	n, err := rlogs[i].Seek(0, 2)
+		rpos = append(rpos, n)
+	}
 
 // Setup inotify watcher
-        watcher, err := gonotify.NewFileWatcher(gonotify.IN_MODIFY | gonotify.IN_MOVED_FROM | gonotify.IN_MOVED_TO | gonotify.IN_CREATE, 
-                        read_log1, read_log2)
+        watcher, err := gonotify.NewFileWatcherSlice(gonotify.IN_MODIFY | gonotify.IN_MOVED_FROM | gonotify.IN_MOVED_TO | gonotify.IN_CREATE, 
+                        logs)
+//        watcher, err := gonotify.NewFileWatcher(gonotify.IN_MODIFY | gonotify.IN_MOVED_FROM | gonotify.IN_MOVED_TO | gonotify.IN_CREATE,
+//                        logs[0], logs[1])
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -98,40 +101,24 @@ func main() {
 		if do_trace {
 			log.Println("event: ", e.Wd, e.Name, e.Mask)
 		}
-		switch e.Wd {
-		case 1:
-			switch e.Mask {
-			case 2:
-			n1 = proc_log1(r1, n1)
-			case 64:
-			r1.Close()
-			case 256:
-        		r1, err = os.Open(read_log1)
-        		if err != nil {
-                		log.Fatalf("error opening read_log1: %v", err)
-        		}
-		        n1, err = r1.Seek(0, 0)
-			}
+		switch e.Mask {
 		case 2:
-                        switch e.Mask {
-                        case 2:
-                        n2 = proc_log1(r2, n2)
-                        case 64:
-                        r2.Close()
-                        case 256:
-                        r2, err = os.Open(read_log2)
-                        if err != nil {
-                                log.Fatalf("error opening read_log2: %v", err)
-                        }
-                        n2, err = r2.Seek(0, 0)
-                        }
+		rpos[e.Wd-1] = proc_log(rlogs[e.Wd-1], rpos[e.Wd-1])
+		case 64:
+		rlogs[e.Wd-1].Close()
+		case 256:
+        	rlogs[e.Wd-1], err = os.Open(logs[e.Wd-1])
+        	if err != nil {
+                	log.Fatalf("error opening %s: %v", logs[e.Wd-1], err)
+        	}
+		rpos[e.Wd-1], err = rlogs[e.Wd-1].Seek(0, 0)
 		default:
 		log.Println("Invalid event number")
 		}
 	}
 }
 
-func proc_log1(f *os.File, p int64) int64 {
+func proc_log(f *os.File, p int64) int64 {
 	b1 := make([]byte, 500)
         _, _ = f.Seek(p, 0)
   	m, err := f.Read(b1)
@@ -144,21 +131,6 @@ func proc_log1(f *os.File, p int64) int64 {
 		p = p + int64(m)
 	} 
 	return p
-}
-
-func proc_log2(f *os.File, p int64) int64 {
-        b1 := make([]byte, 500)
-        _, _ = f.Seek(p, 0)
-        m, err := f.Read(b1)
-        if m > 0 && err == nil {
-                t := string(b1)[:m]
-                mes := strings.Split(t, "\n")
-                for _, ames := range mes[:len(mes)-1] {
-                        log.Print(ames)
-                }
-                p = p + int64(m)
-        }
-        return p
 }
 
 // Write a pid file, but first make sure it doesn't exist with a running pid.
@@ -238,21 +210,15 @@ func read_config() {
         if ownlog =="" { // Handle errors reading the config file
                 log.Fatalf("Filename for ownlog unknown: %v", err)
         }
-        read_log1 = viper.GetString("read_log1")
-        if read_log1 =="" { // Handle errors reading the config file
-                log.Fatalf("Filename for read_log1 unknown: %v", err)
-        }
-        read_log2 = viper.GetString("read_log2")
-        if read_log2 =="" { // Handle errors reading the config file
-                log.Fatalf("Filename for read_log2 unknown: %v", err)
-        }
+	logs = viper.GetStringSlice("logs")
         do_trace = viper.GetBool("do_trace")
 
 	if do_trace {
 		log.Println("do_trace: ",do_trace)
 		log.Println("own_log; ",ownlog)
 		log.Println("pid_file: ",pidfile)
-		log.Println("read_log1: ",read_log1)
-		log.Println("read_log2: ",read_log2)
+		for i, v := range logs {
+			log.Printf("Index: %d, Value: %v\n", i, v )
+		}
 	}
 }
