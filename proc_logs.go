@@ -2,8 +2,6 @@ package main
 
 import (
 	"log"
-	"bufio"
-	"encoding/csv"
 	"io"
 	"io/ioutil"
 	"os"
@@ -25,13 +23,6 @@ var logs []string
 var rlogs []*os.File
 var rpos []int64
 
-type User struct {
-    id string
-    ip  string
-    port uint
-}
-
-var users []User
 
 func main() {
 // Set location of config 
@@ -61,8 +52,8 @@ func main() {
 // Inform about trace
 	log.Println("Trace set to: ", do_trace)
 
-// Read users
-	read_users()
+// Do customized initialization
+	proc_init()
 
 // Catch signals
 	signals := make(chan os.Signal, 1)
@@ -159,39 +150,6 @@ func writePidFile(pidFile string) error {
 	return ioutil.WriteFile(pidFile, []byte(fmt.Sprintf("%d", os.Getpid())), 0664)
 }
  
-func read_users() {
-    csvFile, _ := os.Open("/root/ibrowser-helper/envs.dat")
-    reader := csv.NewReader(bufio.NewReader(csvFile))
-    reader.Comma = rune(59)
-    users = nil
-    for {
-        line, error := reader.Read()
-        if error == io.EOF {
-            break
-        } else if error != nil {
-            log.Fatal(error)
-        }
-    	i, err := strconv.Atoi(line[2])
-    	if err != nil {
-        	// handle error
-        	log.Fatal(err)
-        	os.Exit(2)
-    	}
-        users = append(users, User{
-            id: line[0],
-            ip:  line[1],
-            port: uint(i),
-        })
-    }
-    log.Println("User data read")
-    csvFile.Close()
-    if do_trace {
-    	for _, us := range users{
-		log.Println(us)
-    	}
-    }
-}
-
 func catch_signals(c <-chan os.Signal){
 	for {
 		s := <-c
