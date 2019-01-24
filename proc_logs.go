@@ -103,7 +103,7 @@ func main() {
 		}
 		switch e.Mask {
 		case 2:
-		rpos[e.Wd-1] = proc_log(rlogs[e.Wd-1], rpos[e.Wd-1])
+		rpos[e.Wd-1] = proc_log(rlogs[e.Wd-1], rpos[e.Wd-1], e.Wd-1)
 		case 64:
 		rlogs[e.Wd-1].Close()
 		case 256:
@@ -118,7 +118,7 @@ func main() {
 	}
 }
 
-func proc_log(f *os.File, p int64) int64 {
+func proc_log(f *os.File, p int64, fnr uint32) int64 {
 	b1 := make([]byte, 500)
         _, _ = f.Seek(p, 0)
   	m, err := f.Read(b1)
@@ -126,7 +126,12 @@ func proc_log(f *os.File, p int64) int64 {
 		t := string(b1)[:m]
 		mes := strings.Split(t, "\n")
     		for _, ames := range mes[:len(mes)-1] {
-        		log.Print(ames)
+// Perform customized processing due to the arrival of messages
+			res := process_rules(ames, logs[fnr])
+//============================================================
+        		if res {
+				log.Print(ames)
+			}
     		}
 		p = p + int64(m)
 	} 
