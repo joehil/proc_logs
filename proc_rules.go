@@ -25,7 +25,19 @@ func proc_init() {
 }
 
 func process_rules(message string, rlog string) bool {
-//	fields := strings.Fields(message)
+	fields := strings.Fields(message)
+
+	if do_trace && false {
+		for i, field := range fields {
+			log.Println(i,": ",field)
+		}
+	}
+
+	if len(fields) > 16 {
+		if fields[10] == "AH00957:" {
+			log.Println(fields[16], " gefunden")
+		}
+	}
 
 	return !strings.Contains(message, "AH01276")
 	//return true
