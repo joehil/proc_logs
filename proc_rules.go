@@ -16,7 +16,8 @@ type User struct {
     port uint
 }
 
-var users []User
+//var users []User
+var users map[string]User
 
 
 // Do customized initialisation
@@ -39,15 +40,20 @@ func process_rules(message string, rlog string) bool {
 		}
 	}
 
-	return !strings.Contains(message, "AH01276")
-	//return true
+        if len(fields) > 10 {
+                if fields[10] == "AH01276:" {
+                        return false
+                }
+        }
+
+	return true
 }
 
 func read_users() {
     csvFile, _ := os.Open("/root/ibrowser-helper/envs.dat")
     reader := csv.NewReader(bufio.NewReader(csvFile))
     reader.Comma = rune(59)
-    users = nil
+    users = make(map[string]User)
     for {
         line, error := reader.Read()
         if error == io.EOF {
@@ -61,17 +67,15 @@ func read_users() {
                 log.Fatal(err)
                 os.Exit(2)
         }
-        users = append(users, User{
+        users[line[0]] = User{
             id: line[0],
             ip:  line[1],
             port: uint(i),
-        })
+        }
     }
     log.Println("User data read")
     csvFile.Close()
     if do_trace {
-        for _, us := range users{
-                log.Println(us)
-        }
+            log.Println(users)
     }
 }
