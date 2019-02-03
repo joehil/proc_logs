@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 	"os"
+	"os/exec"
 	"io"
 	"encoding/csv"
 	"bufio"
@@ -12,7 +13,7 @@ import (
 
 type User struct {
     id string
-    ip  string
+    ip string
     port uint
 }
 
@@ -36,9 +37,20 @@ func process_rules(message string, rlog string) bool {
 
 	if len(fields) > 16 {
 		if fields[10] == "AH00957:" {
-			log.Println(fields[16], " gefunden")
+			f := fields[16]
+			s := strings.Split(f, ":")
+			f = s[1]
+			log.Println(users[f].id, "wird gestartet!")
+			cmd := exec.Command("/usr/bin/monit", "start", users[f].id)
+			_ = cmd.Start()
 		}
 	}
+
+        if len(fields) > 10 {
+                if fields[10] == "AH00126:" {
+                        return false
+                }
+        }
 
         if len(fields) > 10 {
                 if fields[10] == "AH01276:" {
@@ -67,7 +79,7 @@ func read_users() {
                 log.Fatal(err)
                 os.Exit(2)
         }
-        users[line[0]] = User{
+        users[line[2]] = User{
             id: line[0],
             ip:  line[1],
             port: uint(i),
@@ -79,3 +91,4 @@ func read_users() {
             log.Println(users)
     }
 }
+
