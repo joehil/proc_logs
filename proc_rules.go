@@ -84,6 +84,12 @@ func process_rules(message string, rlog string) bool {
                 }
         }
 
+        if len(fields) > 10 {
+                if fields[10] == "AH02811:" {
+                        return false
+                }
+        }
+
 	return true
 }
 
