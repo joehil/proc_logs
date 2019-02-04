@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"os/exec"
 	"fmt"
 	"strings"
 	"strconv"
@@ -31,6 +32,20 @@ func main() {
 
 // Read config
 	read_config()
+
+// Get commandline args
+        a1 := os.Args[1]
+        if a1 == "reload" {
+		b, err := ioutil.ReadFile(pidfile) 
+    		if err != nil {
+        		log.Fatal(err)
+    		}
+		s := string(b)
+		fmt.Println("Reload", s)
+		cmd := exec.Command("kill", "-hup", s)
+                _ = cmd.Start()
+                os.Exit(0)
+        }
 
 // Write pidfile
         err := writePidFile(pidfile)
