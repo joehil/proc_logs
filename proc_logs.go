@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/signal"
@@ -13,6 +12,7 @@ import (
 	"syscall"
 	"github.com/illarion/gonotify"
 	"github.com/spf13/viper"
+	"github.com/natefinch/lumberjack"
 )
 
 //var read_log1 string = "/var/log/monit.log"
@@ -57,14 +57,15 @@ func main() {
 	defer os.Remove(pidfile)
 
 // Open log file
-	f, err := os.OpenFile(ownlog, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
-	if err != nil {
-    		log.Fatalf("error opening ownlog: %v", err)
+	ownlogger := &lumberjack.Logger{
+    		Filename:   ownlog,
+    		MaxSize:    5, // megabytes
+    		MaxBackups: 3,
+    		MaxAge:     28, //days
+    		Compress:   true, // disabled by default
 	}
-	defer f.Close()
-//	wrt := io.MultiWriter(os.Stdout, f)
-	wrt := io.MultiWriter(f)
-	log.SetOutput(wrt)
+	defer ownlogger.Close()
+	log.SetOutput(ownlogger)
 
 // Inform about trace
 	log.Println("Trace set to: ", do_trace)
