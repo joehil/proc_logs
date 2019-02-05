@@ -29,7 +29,7 @@ func proc_init() {
 func process_rules(message string, rlog string) bool {
 	fields := strings.Fields(message)
 
-	if false {
+	if msg_trace {
 		for i, field := range fields {
 			log.Println(i,": ",field)
 		}
@@ -40,7 +40,7 @@ func process_rules(message string, rlog string) bool {
 			f := fields[16]
 			s := strings.Split(f, ":")
 			f = s[1]
-			log.Println(users[f].id, "wird gestartet!")
+			log.Println(users[f].id, "is being stared")
 			cmd := exec.Command("/usr/bin/monit", "start", users[f].id)
 			_ = cmd.Start()
 		}
@@ -50,7 +50,7 @@ func process_rules(message string, rlog string) bool {
                 if fields[4] == "error" && fields[8] == "cpu" {
                         f := fields[6]
                         f = strings.Replace(f, "'", "", 2)
-                        log.Println(f, "wird gestoppt!")
+                        log.Println(f, "is being stopped")
                         cmd := exec.Command("/usr/bin/monit", "stop", f)
                         _ = cmd.Start()
                 }
@@ -60,7 +60,7 @@ func process_rules(message string, rlog string) bool {
                 if fields[4] == "error" && fields[12] == "125)" {
                         f := fields[6]
                         f = strings.Replace(f, "'", "", 2)
-                        log.Println(f, " Container wird entfernt!")
+                        log.Println(f, " container is being removed")
                         cmd := exec.Command("/usr/bin/docker", "rm", f)
                         _ = cmd.Start()
                 }

@@ -18,6 +18,7 @@ import (
 //var read_log1 string = "/var/log/monit.log"
 //var read_log2 string = "/var/log/virtualmin/remote-browser.eu_error_log"
 var do_trace bool = false
+var msg_trace bool = false
 var pidfile string
 var ownlog string
 var logs []string
@@ -47,6 +48,30 @@ func main() {
                 	_ = cmd.Start()
                 	os.Exit(0)
         	}
+                if a1 == "mtraceon" {
+                        b, err := ioutil.ReadFile(pidfile)
+                        if err != nil {
+                                log.Fatal(err)
+                        }
+                        s := string(b)
+                        fmt.Println("MsgTraceOn")
+                        cmd := exec.Command("kill", "-10", s)
+                        _ = cmd.Start()
+                        os.Exit(0)
+                }
+                if a1 == "mtraceoff" {
+                        b, err := ioutil.ReadFile(pidfile)
+                        if err != nil {
+                                log.Fatal(err)
+                        }
+                        s := string(b)
+                        fmt.Println("MsgTraceOff")
+                        cmd := exec.Command("kill", "-12", s)
+                        _ = cmd.Start()
+                        os.Exit(0)
+                }
+		fmt.Println("parameter invalid")
+		os.Exit(-1)
 	}
 
 // Write pidfile
@@ -75,7 +100,7 @@ func main() {
 
 // Catch signals
 	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGHUP)
+	signal.Notify(signals, syscall.SIGHUP, syscall.SIGUSR1, syscall.SIGUSR2)
 	go catch_signals(signals)
 
 // Open logs to read
@@ -171,9 +196,19 @@ func writePidFile(pidFile string) error {
 func catch_signals(c <-chan os.Signal){
 	for {
 		s := <-c
-		log.Println("Got signal:", s)
-		read_config()
-		read_users()
+                log.Println("Got signal:", s)
+		if s == syscall.SIGHUP {
+			read_config()
+			read_users()
+		}
+                if s == syscall.SIGUSR1 {
+                        msg_trace = true
+                        log.Println("msg_trace switched on")
+                }
+                if s == syscall.SIGUSR2 {
+                        msg_trace = false
+                        log.Println("msg_trace switched off")
+                }
 	}
 }
 
