@@ -10,6 +10,7 @@ import (
 	"strings"
 	"strconv"
 	"syscall"
+	"hash/fnv"
 	"github.com/illarion/gonotify"
 	"github.com/spf13/viper"
 	"github.com/natefinch/lumberjack"
@@ -24,6 +25,7 @@ var ownlog string
 var logs []string
 var rlogs []*os.File
 var rpos []int64
+var loghash []uint32
 
 
 func main() {
@@ -124,6 +126,9 @@ func proc_run() {
         	defer rlogs[i].Close()
         	n, err := rlogs[i].Seek(0, 2)
 		rpos = append(rpos, n)
+		hash := fnv.New32()
+		hash.Write([]byte(rlog))
+		loghash = append(loghash,hash.Sum32())
 	}
 
 // Setup inotify watcher
@@ -169,7 +174,7 @@ func proc_log(f *os.File, p int64, fnr uint32) int64 {
 		mes := strings.Split(t, "\n")
     		for _, ames := range mes[:len(mes)-1] {
 // Perform customized processing due to the arrival of messages
-			res := process_rules(ames, logs[fnr])
+			res := process_rules(ames, fnr)
 //============================================================
         		if res {
 				log.Print(ames)

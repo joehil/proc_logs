@@ -26,10 +26,13 @@ func proc_init() {
 	read_users()
 }
 
-func process_rules(message string, rlog string) bool {
+func process_rules(message string, lognr uint32) bool {
 	fields := strings.Fields(message)
+	logname := logs[lognr]
+	lhash := loghash[lognr]
 
 	if msg_trace {
+		log.Println("lognr:", lognr, "lhash:", lhash, "logname:", logname)
 		for i, field := range fields {
 			log.Println(i,": ",field)
 		}
