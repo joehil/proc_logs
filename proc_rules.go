@@ -40,7 +40,7 @@ func process_rules(message string, rlog string) bool {
 			f := fields[16]
 			s := strings.Split(f, ":")
 			f = s[1]
-			log.Println(users[f].id, "is being stared")
+			log.Println(users[f].id, "is being started")
 			cmd := exec.Command("/usr/bin/monit", "start", users[f].id)
 			_ = cmd.Start()
 		}

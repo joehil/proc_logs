@@ -70,10 +70,18 @@ func main() {
                         _ = cmd.Start()
                         os.Exit(0)
                 }
+                if a1 == "run" {
+                        proc_run()
+                }
 		fmt.Println("parameter invalid")
 		os.Exit(-1)
 	}
+	if len(os.Args) == 1 {
+		myUsage()
+	}
+}
 
+func proc_run() {
 // Write pidfile
         err := writePidFile(pidfile)
         if err != nil { 
@@ -237,4 +245,13 @@ func read_config() {
 			log.Printf("Index: %d, Value: %v\n", i, v )
 		}
 	}
+}
+
+func myUsage() {
+     fmt.Printf("Usage: %s argument\n", os.Args[0])
+     fmt.Println("Arguments:")
+     fmt.Println("run           Run progam as daemon")
+     fmt.Println("reload        Make running daemon reload it's configuration")
+     fmt.Println("mtraceon      Make running daemon switch it's message tracing on (useful for coding new rules)")
+     fmt.Println("mtraceoff     Make running daemon switch it's message tracing off")
 }
