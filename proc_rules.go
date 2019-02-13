@@ -26,7 +26,8 @@ func proc_init() {
 	read_users()
 }
 
-func process_rules(message string, lognr uint32) bool {
+func process_rules(message string, lognr uint32) {
+	var do_log bool = true
 	fields := strings.Fields(message)
 	logname := logs[lognr]
 	lhash := loghash[lognr]
@@ -45,7 +46,7 @@ func process_rules(message string, lognr uint32) bool {
 			f = s[1]
 			log.Println(users[f].id, "is being started")
 			cmd := exec.Command("/usr/bin/monit", "start", users[f].id)
-			_ = cmd.Start()
+			_ = cmd.Run()
 		}
 	}
 
@@ -55,7 +56,7 @@ func process_rules(message string, lognr uint32) bool {
                         f = strings.Replace(f, "'", "", 2)
                         log.Println(f, "is being stopped")
                         cmd := exec.Command("/usr/bin/monit", "stop", f)
-                        _ = cmd.Start()
+                        _ = cmd.Run()
                 }
         }
 
@@ -65,35 +66,37 @@ func process_rules(message string, lognr uint32) bool {
                         f = strings.Replace(f, "'", "", 2)
                         log.Println(f, " container is being removed")
                         cmd := exec.Command("/usr/bin/docker", "rm", f)
-                        _ = cmd.Start()
+                        _ = cmd.Run()
                 }
         }
 
         if len(fields) > 10 {
                 if fields[10] == "AH00126:" {
-                        return false
+                        do_log = false
                 }
         }
 
         if len(fields) > 10 {
                 if fields[10] == "AH01114:" {
-                        return false
+                        do_log = false
                 }
         }
 
         if len(fields) > 10 {
                 if fields[10] == "AH01276:" {
-                        return false
+                        do_log = false
                 }
         }
 
         if len(fields) > 10 {
                 if fields[10] == "AH02811:" {
-                        return false
+                        do_log = false
                 }
         }
 
-	return true
+	if do_log {
+		log.Println(message)
+	}
 }
 
 func read_users() {

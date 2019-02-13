@@ -174,11 +174,11 @@ func proc_log(f *os.File, p int64, fnr uint32) int64 {
 		mes := strings.Split(t, "\n")
     		for _, ames := range mes[:len(mes)-1] {
 // Perform customized processing due to the arrival of messages
-			res := process_rules(ames, fnr)
+			go process_rules(ames, fnr)
 //============================================================
-        		if res {
-				log.Print(ames)
-			}
+//        		if res {
+//				log.Print(ames)
+//			}
     		}
 		p = p + int64(m)
 	} 
