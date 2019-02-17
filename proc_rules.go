@@ -46,7 +46,10 @@ func process_rules(message string, lognr uint32) {
 			f = s[1]
 			log.Println(users[f].id, "is being started")
 			cmd := exec.Command("/usr/bin/monit", "start", users[f].id)
-			_ = cmd.Run()
+			err := cmd.Run()
+			if err != nil {
+				log.Printf("Command finished with error: %v", err)
+			}
 		}
 	}
 
@@ -56,7 +59,10 @@ func process_rules(message string, lognr uint32) {
                         f = strings.Replace(f, "'", "", 2)
                         log.Println(f, "is being stopped")
                         cmd := exec.Command("/usr/bin/monit", "stop", f)
-                        _ = cmd.Run()
+                        err := cmd.Run()
+                        if err != nil {
+                                log.Printf("Command finished with error: %v", err)
+                        }
                 }
         }
 
@@ -66,33 +72,20 @@ func process_rules(message string, lognr uint32) {
                         f = strings.Replace(f, "'", "", 2)
                         log.Println(f, " container is being removed")
                         cmd := exec.Command("/usr/bin/docker", "rm", f)
-                        _ = cmd.Run()
+                        err := cmd.Run()
+                        if err != nil {
+                                log.Printf("Command finished with error: %v", err)
+                        }
                 }
         }
 
-        if len(fields) > 10 {
-                if fields[10] == "AH00126:" {
-                        do_log = false
-                }
-        }
+	do_log = suppress_field(10, "AH00126:", do_log, fields)
 
-        if len(fields) > 10 {
-                if fields[10] == "AH01114:" {
-                        do_log = false
-                }
-        }
+        do_log = suppress_field(10, "AH01114:", do_log, fields)
 
-        if len(fields) > 10 {
-                if fields[10] == "AH01276:" {
-                        do_log = false
-                }
-        }
+        do_log = suppress_field(10, "AH01276:", do_log, fields)
 
-        if len(fields) > 10 {
-                if fields[10] == "AH02811:" {
-                        do_log = false
-                }
-        }
+        do_log = suppress_field(10, "AH02811:", do_log, fields)
 
 	if do_log {
 		log.Println(message)
