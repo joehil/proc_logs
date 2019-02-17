@@ -3,11 +3,11 @@ package main
 import (
 //	"strings"
 //	"os"
-//	"os/exec"
+	"os/exec"
 //	"io"
 //	"encoding/csv"
 //	"bufio"
-//	"log"
+	"log"
 //	"strconv"
 )
 
@@ -18,5 +18,13 @@ func suppress_field(nr int, word string, do_log bool, fields []string) bool {
                 }
         }
 	return do_log
+}
+
+func exec_cmd(command string, args ...string) {
+        cmd := exec.Command(command, args...)
+        err := cmd.Run()
+        if err != nil {
+                log.Printf("Command finished with error: %v", err)
+        }
 }
 

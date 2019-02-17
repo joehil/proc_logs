@@ -3,7 +3,6 @@ package main
 import (
 	"strings"
 	"os"
-	"os/exec"
 	"io"
 	"encoding/csv"
 	"bufio"
@@ -45,11 +44,7 @@ func process_rules(message string, lognr uint32) {
 			s := strings.Split(f, ":")
 			f = s[1]
 			log.Println(users[f].id, "is being started")
-			cmd := exec.Command("/usr/bin/monit", "start", users[f].id)
-			err := cmd.Run()
-			if err != nil {
-				log.Printf("Command finished with error: %v", err)
-			}
+			exec_cmd("/usr/bin/monit", "start", users[f].id)
 		}
 	}
 
@@ -58,11 +53,7 @@ func process_rules(message string, lognr uint32) {
                         f := fields[6]
                         f = strings.Replace(f, "'", "", 2)
                         log.Println(f, "is being stopped")
-                        cmd := exec.Command("/usr/bin/monit", "stop", f)
-                        err := cmd.Run()
-                        if err != nil {
-                                log.Printf("Command finished with error: %v", err)
-                        }
+                        exec_cmd("/usr/bin/monit", "stop", f)
                 }
         }
 
@@ -71,11 +62,7 @@ func process_rules(message string, lognr uint32) {
                         f := fields[6]
                         f = strings.Replace(f, "'", "", 2)
                         log.Println(f, " container is being removed")
-                        cmd := exec.Command("/usr/bin/docker", "rm", f)
-                        err := cmd.Run()
-                        if err != nil {
-                                log.Printf("Command finished with error: %v", err)
-                        }
+                        exec_cmd("/usr/bin/docker", "rm", f)
                 }
         }
 
