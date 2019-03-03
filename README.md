@@ -9,3 +9,15 @@ The compiled module is proc_logs.
 To get a compressed executable module you can use the command:
 upx -9 proc_logs
 
+The software consists of three parts:
+
+1. proc_logs.go
+This is the part that reads in the specified logs and is the driver of the processing rules.
+
+2. proc_util.go
+There are utilities in this file that can be used to process the rules.
+
+3. proc_rules.go
+This is the file where the processing rules are defined. This is the file that is to be customized do make the software do what you want it to do.
+
+To be continued.
