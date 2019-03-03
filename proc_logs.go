@@ -132,10 +132,10 @@ func proc_run() {
 	}
 
 // Setup inotify watcher
-        watcher, err := gonotify.NewFileWatcherSlice(gonotify.IN_MODIFY | gonotify.IN_MOVED_FROM | gonotify.IN_MOVED_TO | gonotify.IN_CREATE, 
-                        logs)
-//        watcher, err := gonotify.NewFileWatcher(gonotify.IN_MODIFY | gonotify.IN_MOVED_FROM | gonotify.IN_MOVED_TO | gonotify.IN_CREATE,
-//                        logs[0], logs[1])
+//        watcher, err := gonotify.NewFileWatcherSlice(gonotify.IN_MODIFY | gonotify.IN_MOVED_FROM | gonotify.IN_MOVED_TO | gonotify.IN_CREATE, 
+//                        logs)
+        watcher, err := gonotify.NewFileWatcher(gonotify.IN_MODIFY | gonotify.IN_MOVED_FROM | gonotify.IN_MOVED_TO | gonotify.IN_CREATE,
+                        logs[0], logs[1])
 
 	if err != nil {
 		log.Fatal(err)

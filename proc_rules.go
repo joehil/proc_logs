@@ -79,6 +79,7 @@ func process_rules(message string, lognr uint32) {
 	}
 }
 
+// Function do read in a custom map to make special decisions 
 func read_users() {
     csvFile, _ := os.Open("/root/ibrowser-helper/envs.dat")
     reader := csv.NewReader(bufio.NewReader(csvFile))
